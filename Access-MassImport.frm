@@ -38,9 +38,9 @@ Attribute VB_Exposed = False
 '#########################################################################
 
 Option Compare Database
-    Dim count As Integer
+Dim count As Integer
 
-    Private Sub ToggleButton1_Click() 'WHEN START BUTTON IS CLICKED
+Private Sub ToggleButton1_Click() 'WHEN START BUTTON IS CLICKED
     If OptionButton1 = True Then 'IF THE 'TEXT' RADIO BUTTON IS CHECKED
         If TextBox1.TextLength > 0 Then 'IF THERE IS TEXT IN TEXTBOX1
             TextFile 'JUMPTO TEXTFILE SUB
