@@ -41,120 +41,120 @@ Option Compare Database
 Dim count As Integer
 
 Private Sub ToggleButton1_Click() 'WHEN START BUTTON IS CLICKED
-If OptionButton1 = True Then 'IF THE 'TEXT' RADIO BUTTON IS CHECKED
-    If TextBox1.TextLength > 0 Then 'IF THERE IS TEXT IN TEXTBOX1
-        TextFile 'JUMPTO TEXTFILE SUB
+    If OptionButton1 = True Then 'IF THE 'TEXT' RADIO BUTTON IS CHECKED
+        If TextBox1.TextLength > 0 Then 'IF THERE IS TEXT IN TEXTBOX1
+            TextFile() 'JUMPTO TEXTFILE SUB
+        Else
+            MsgBox("Where Do I Import From?")
+        End If
+    ElseIf OptionButton2 = True Then 'IF THE 'EXCEL' RADIO BUTTON IS CHECKED
+        If TextBox1.TextLength > 0 Then 'IF THERE IS TEXT IN TEXTBOX1
+            ExcelFile() 'JUMPTO EXCELFILE SUB
+        Else
+            MsgBox("Were Do I Import From?")
+        End If
     Else
-        MsgBox ("Where Do I Import From?")
+        MsgBox("Please Pick Import Type") 'THIS DISPLAYS IF ONE RADIO BUTTON IS NOT CHECKED
     End If
-ElseIf OptionButton2 = True Then 'IF THE 'EXCEL' RADIO BUTTON IS CHECKED
-    If TextBox1.TextLength > 0 Then 'IF THERE IS TEXT IN TEXTBOX1
-        ExcelFile 'JUMPTO EXCELFILE SUB
-    Else
-        MsgBox ("Were Do I Import From?")
-    End If
-Else
-    MsgBox ("Please Pick Import Type") 'THIS DISPLAYS IF ONE RADIO BUTTON IS NOT CHECKED
-End If
 End Sub
 
 Private Sub ToggleButton2_Click() 'IF EXPORT BUTTON IS CLICKED
-If TextBox2.TextLength > 0 Then 'CHECKS IF TEXTBOX2 HAS TEXT
-    Export
-Else
-    MsgBox ("Where Do I Export To?")
-End If
+    If TextBox2.TextLength > 0 Then 'CHECKS IF TEXTBOX2 HAS TEXT
+        Export()
+    Else
+        MsgBox("Where Do I Export To?")
+    End If
 End Sub
 
 Private Sub ToggleButton3_Click() 'If first browse button is clicked
-GettingFolder1
+    GettingFolder1()
 End Sub
 
 Private Sub ToggleButton4_Click()
-GettingFolder2
+    GettingFolder2()
 End Sub
 
 
 Sub ExcelFile()
-Dim colFiles As New Collection 'MAKES A COLLECTION
-RecursiveDir colFiles, TextBox1.Text, "*.xlsx", True 'JUMP TO RECURSIVEDIR FUNCTION WITH PARAMETERS
-Dim WrdArray() As String 'MAKE A ARRAY
-Dim file() As String 'MAKE A ARRAY
-Dim vFile As Variant 'MAKE A VARIANT
-Dim cdb As DAO.Database
-Set cdb = CurrentDb 'DECLARE CDB IS OUR CURRENT DATABASE
-For Each vFile In colFiles 'FOR EACH FILE IN OUR FILE COLLECTION
-    Me.Label2 = "Importing: " + vFile 'SET THE LABEL TO THE CURRENT FILE IN THE COLLECTION
-    WrdArray() = Split(vFile, "\") 'SPLIT THE FILE PATH NAME BY "\" INTO A ARRAY
-    file() = Split(WrdArray(count + 1), ".xlsx") 'SPLIT ARRAY AGAIN TO REMOVE .XLSX
-    On Error Resume Next 'IF THERE IS A ERROR, PROCEED
-    cdb.TableDefs.Delete file(0) 'DELETE TABLE BEING IMPORTED
-    DoCmd.TransferSpreadsheet acImport, 9, file(0), vFile, True 'IMPORT
-Next vFile 'NEXT FILE IN COLLECTION
-Me.Label2 = "DONE!" 'DISPLAY DONE
+    Dim colFiles As New Collection 'MAKES A COLLECTION
+    RecursiveDir(colFiles, TextBox1.Text, "*.xlsx", True) 'JUMP TO RECURSIVEDIR FUNCTION WITH PARAMETERS
+    Dim WrdArray() As String 'MAKE A ARRAY
+    Dim file() As String 'MAKE A ARRAY
+    Dim vFile As Object 'MAKE A VARIANT
+    Dim cdb As DAO.Database
+    cdb = CurrentDb 'DECLARE CDB IS OUR CURRENT DATABASE
+    For Each vFile In colFiles 'FOR EACH FILE IN OUR FILE COLLECTION
+        Me.Label2 = "Importing: " + vFile 'SET THE LABEL TO THE CURRENT FILE IN THE COLLECTION
+        WrdArray() = Split(vFile, "\") 'SPLIT THE FILE PATH NAME BY "\" INTO A ARRAY
+        file() = Split(WrdArray(count + 1), ".xlsx") 'SPLIT ARRAY AGAIN TO REMOVE .XLSX
+        On Error Resume Next 'IF THERE IS A ERROR, PROCEED
+        cdb.TableDefs.Delete file(0) 'DELETE TABLE BEING IMPORTED
+        DoCmd.TransferSpreadsheet(acImport, 9, file(0), vFile, True) 'IMPORT
+    Next vFile 'NEXT FILE IN COLLECTION
+    Me.Label2 = "DONE!" 'DISPLAY DONE
 End Sub
 
 Sub TextFile() 'Same as ExcelFile
-Dim colFiles As New Collection
-RecursiveDir colFiles, TextBox1.Text, "*.txt", True
-Dim WrdArray() As String
-Dim file() As String
-Dim vFile As Variant
-Dim cdb As DAO.Database
-Set cdb = CurrentDb
-For Each vFile In colFiles
-    Me.Label2 = "Importing: " + vFile
-    WrdArray() = Split(vFile, "\")
-    file() = Split(WrdArray(count + 1), ".txt")
-    On Error Resume Next
-    cdb.TableDefs.Delete file(0)
-    DoCmd.TransferText acImportDelim, Null, file(0), vFile, True
-Next vFile
-Me.Label2 = "DONE!"
+    Dim colFiles As New Collection
+    RecursiveDir(colFiles, TextBox1.Text, "*.txt", True)
+    Dim WrdArray() As String
+    Dim file() As String
+    Dim vFile As Object
+    Dim cdb As DAO.Database
+    cdb = CurrentDb
+    For Each vFile In colFiles
+        Me.Label2 = "Importing: " + vFile
+        WrdArray() = Split(vFile, "\")
+        file() = Split(WrdArray(count + 1), ".txt")
+        On Error Resume Next
+        cdb.TableDefs.Delete file(0)
+        DoCmd.TransferText(acImportDelim, Null, file(0), vFile, True)
+    Next vFile
+    Me.Label2 = "DONE!"
 End Sub
 
 Sub Export()
-Dim tbl As TableDef 'DECLARES TBL AS TABLEDEF
-For Each tbl In CurrentDb.TableDefs 'FOR EACH TABLE IN CURRENT DATABASE
-    DoCmd.TransferSpreadsheet acExport, acSpreadsheetTypeExcel9, tbl.Name, _
-    TextBox2.Text + "\data.xls", True, tbl.Name 'EXPORT DATA TO EXCEL WORKBOOK AND EACH TABLE IS A EXCEL SHEET
-Next 'NEXT TABLE
-MsgBox ("DONE!")
+    Dim tbl As TableDef 'DECLARES TBL AS TABLEDEF
+    For Each tbl In CurrentDb.TableDefs 'FOR EACH TABLE IN CURRENT DATABASE
+        DoCmd.TransferSpreadsheet(acExport, acSpreadsheetTypeExcel9, tbl.Name, _
+        TextBox2.Text + "\data.xls", True, tbl.Name) 'EXPORT DATA TO EXCEL WORKBOOK AND EACH TABLE IS A EXCEL SHEET
+    Next 'NEXT TABLE
+    MsgBox("DONE!")
 End Sub
 
 Sub GettingFolder1()
-Dim SelectedFolder As String
-With Application.FileDialog(msoFileDialogFolderPicker) 'Open file dialog
-.Title = "Select folder" 'Sets title of the dialog
-.ButtonName = "Confirm" 'Sets button text
-.InitialFileName = "C:\" 'Sets starting location
+    Dim SelectedFolder As String
+    With Application.FileDialog(msoFileDialogFolderPicker) 'Open file dialog
+        .Title = "Select folder" 'Sets title of the dialog
+        .ButtonName = "Confirm" 'Sets button text
+        .InitialFileName = "C:\" 'Sets starting location
 
-If .Show = -1 Then 'ok clicked
-    SelectedFolder = .SelectedItems(1)
-    count = Len(SelectedFolder) - Len(Replace(SelectedFolder, "\", "")) 'Count how many back-slashes - This makes program bullet proof
-    TextBox1.Text = SelectedFolder
-Else 'cancel clicked
-End If
+        If .Show = -1 Then 'ok clicked
+            SelectedFolder = .SelectedItems(1)
+            count = Len(SelectedFolder) - Len(Replace(SelectedFolder, "\", "")) 'Count how many back-slashes - This makes program bullet proof
+            TextBox1.Text = SelectedFolder
+        Else 'cancel clicked
+        End If
 
-End With
+    End With
 
 End Sub
 
 Sub GettingFolder2() 'If second browser button is clicked
-Dim SelectedFolder As String
+    Dim SelectedFolder As String
 
-With Application.FileDialog(msoFileDialogFolderPicker) 'Open file dialog
-.Title = "Select folder"
-.ButtonName = "Confirm"
-.InitialFileName = "C:\"
+    With Application.FileDialog(msoFileDialogFolderPicker) 'Open file dialog
+        .Title = "Select folder"
+        .ButtonName = "Confirm"
+        .InitialFileName = "C:\"
 
-If .Show = -1 Then 'ok clicked
-SelectedFolder = .SelectedItems(1)
-TextBox2.Text = SelectedFolder
-Else 'cancel clicked
-End If
+        If .Show = -1 Then 'ok clicked
+            SelectedFolder = .SelectedItems(1)
+            TextBox2.Text = SelectedFolder
+        Else 'cancel clicked
+        End If
 
-End With
+    End With
 
 End Sub
 
@@ -166,7 +166,7 @@ Public Function RecursiveDir(colFiles As Collection, _
 
     Dim strTemp As String
     Dim colFolders As New Collection
-    Dim vFolderName As Variant
+    Dim vFolderName As Object
 
     'Add files in strFolder matching strFileSpec to colFiles
     strFolder = TrailingSlash(strFolder)
